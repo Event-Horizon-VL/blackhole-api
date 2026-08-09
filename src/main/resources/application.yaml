@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/blackhole-back-someUUID
+    username: ONEDAY
+    password: random
+  jpa:
+    database: postgresql
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
