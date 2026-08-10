@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -21,7 +21,7 @@ import com.github.luben.zstd.ZstdInputStream;
 
 public class Parser {
     //zstd -> tar -> plist -> Map<String, NSObject>
-    public static Optional<Map<String, NSObject>> toMap(File file) throws IOException,
+    public static Optional<HashMap<String, NSObject>> toMap(File file) throws IOException,
             PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
         try (
                 FileInputStream fileInputStream = new FileInputStream(file);

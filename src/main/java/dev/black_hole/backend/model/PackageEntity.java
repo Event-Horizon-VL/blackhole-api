@@ -18,24 +18,27 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PackageEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false)
-    UUID packageId;
+    private UUID packageId;
+
+    @Column(nullable = false,length = 40)
+    private String packageName;
 
     @Column(nullable = false)
-    Double version;
+    private Double version;
 
     @Column(nullable = false)
-    int revision;
+    private int revision;
 
     // TODO String repository
 
     @Column(nullable = false)
-    long sizeInBytes;
+    private long sizeInBytes;
 
     @Column(nullable = false, length = 84)
-    String shortDescription;
+    private String shortDescription;
 
 }
