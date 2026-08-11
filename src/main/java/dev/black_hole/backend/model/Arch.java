@@ -1,7 +1,9 @@
 package dev.black_hole.backend.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor
 public enum Arch {
     X86_64("x86_64"),

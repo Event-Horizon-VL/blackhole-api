@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class PackageController {
     public static final org.slf4j.Logger log = LoggerFactory.getLogger(PackageController.class);
     private final PackageService packageService;
+
     @GetMapping("/")
     public ResponseEntity<Page<PackageResponseDto>> getPackageByFilter(
             @RequestParam(required = false) String arch,
@@ -29,6 +30,6 @@ public class PackageController {
         var filter = new PackageSearchFilter(arch, packageName, pageSize, pageNumber);
         log.info("Getting package with filter={}", filter);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(packageService.getPackageByFilter(filter));
+                .body(packageService.searchPackages(filter));
     }
 }

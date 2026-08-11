@@ -20,74 +20,74 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-        private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-        @ExceptionHandler(FileNotFoundException.class)
-        public ResponseEntity<ErrorResponseDto> handleFileNotFound(
-                        FileNotFoundException ex,
-                        HttpServletRequest request) {
+    @ExceptionHandler(FileNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleFileNotFound(
+            FileNotFoundException ex,
+            HttpServletRequest request) {
 
-                return build(
-                                HttpStatus.BAD_REQUEST,
-                                "FILE_NOT_FOUND",
-                                "Package file not found",
-                                request);
-        }
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "FILE_NOT_FOUND",
+                "Package file not found",
+                request);
+    }
 
-        @ExceptionHandler(IOException.class)
-        public ResponseEntity<ErrorResponseDto> handleIOException(
-                        IOException ex,
-                        HttpServletRequest request) {
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<ErrorResponseDto> handleIOException(
+            IOException ex,
+            HttpServletRequest request) {
 
-                log.error("IO error while parsing package", ex);
+        log.error("IO error while parsing package", ex);
 
-                return build(
-                                HttpStatus.BAD_REQUEST,
-                                "FILE_READ_ERROR",
-                                "Cannot read package file",
-                                request);
-        }
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "FILE_READ_ERROR",
+                "Cannot read package file",
+                request);
+    }
 
-        @ExceptionHandler(PropertyListFormatException.class)
-        public ResponseEntity<ErrorResponseDto> handlePlistError(
-                        PropertyListFormatException ex,
-                        HttpServletRequest request) {
+    @ExceptionHandler(PropertyListFormatException.class)
+    public ResponseEntity<ErrorResponseDto> handlePlistError(
+            PropertyListFormatException ex,
+            HttpServletRequest request) {
 
-                log.error("Invalid plist format", ex);
+        log.error("Invalid plist format", ex);
 
-                return build(
-                                HttpStatus.BAD_REQUEST,
-                                "INVALID_PLIST",
-                                "Package metadata is corrupted",
-                                request);
-        }
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "INVALID_PLIST",
+                "Package metadata is corrupted",
+                request);
+    }
 
-        @ExceptionHandler(ParseException.class)
-        public ResponseEntity<ErrorResponseDto> handleParseError(
-                        ParseException ex,
-                        HttpServletRequest request) {
+    @ExceptionHandler(ParseException.class)
+    public ResponseEntity<ErrorResponseDto> handleParseError(
+            ParseException ex,
+            HttpServletRequest request) {
 
-                log.error("Parse error", ex);
+        log.error("Parse error", ex);
 
-                return build(
-                                HttpStatus.BAD_REQUEST,
-                                "PARSE_ERROR",
-                                "Cannot parse package metadata",
-                                request);
-        }
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "PARSE_ERROR",
+                "Cannot parse package metadata",
+                request);
+    }
 
-        private ResponseEntity<ErrorResponseDto> build(
-                        HttpStatus status,
-                        String code,
-                        String message,
-                        HttpServletRequest request) {
+    private ResponseEntity<ErrorResponseDto> build(
+            HttpStatus status,
+            String code,
+            String message,
+            HttpServletRequest request) {
 
-                return ResponseEntity
-                                .status(status)
-                                .body(new ErrorResponseDto(
-                                                code,
-                                                message,
-                                                request.getRequestURI(),
-                                                LocalDateTime.now()));
-        }
+        return ResponseEntity
+                .status(status)
+                .body(new ErrorResponseDto(
+                        code,
+                        message,
+                        request.getRequestURI(),
+                        LocalDateTime.now()));
+    }
 }

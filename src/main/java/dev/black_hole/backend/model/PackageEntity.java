@@ -1,7 +1,6 @@
 package dev.black_hole.backend.model;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.Set;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -9,8 +8,6 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
@@ -28,10 +25,6 @@ import lombok.Setter;
 public class PackageEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID packageId;
-
     @Column(nullable = false, length = 40)
     private String packageName;
 
@@ -51,6 +44,6 @@ public class PackageEntity {
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "package_archs", joinColumns = @JoinColumn(name = "package_id"))
-    List<Arch> arch;
+    @CollectionTable(name = "package_archs", joinColumns = @JoinColumn(name = "package_name"))
+    Set<Arch> arch;
 }
