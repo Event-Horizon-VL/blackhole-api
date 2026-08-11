@@ -76,6 +76,20 @@ public class GlobalExceptionHandler {
                 request);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> handleException(
+            Exception ex,
+            HttpServletRequest request) {
+
+        log.error("Unexpected server error", ex);
+
+        return build(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "INTERNAL_SERVER_ERROR",
+                "An unexpected error occurred",
+                request);
+    }
+
     private ResponseEntity<ErrorResponseDto> build(
             HttpStatus status,
             String code,
