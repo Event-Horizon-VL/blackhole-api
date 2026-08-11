@@ -1,47 +1,150 @@
 package dev.black_hole.backend.service;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.xml.sax.SAXException;
 
+import com.dd.plist.NSDictionary;
+import com.dd.plist.PropertyListFormatException;
+
+import dev.black_hole.backend.config.RepodataProperties;
 import dev.black_hole.backend.dto.PackageResponseDto;
 import dev.black_hole.backend.dto.PackageSearchFilter;
+import dev.black_hole.backend.mapper.PackageMapper;
+import dev.black_hole.backend.model.Arch;
+import dev.black_hole.backend.model.PackageEntity;
+import dev.black_hole.backend.parser.Parser;
 import dev.black_hole.backend.repository.PackageRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PackageService {
     public static final org.slf4j.Logger log = LoggerFactory.getLogger(PackageService.class);
 
     private final PackageRepository repository;
+    private final RepodataProperties properties;
+    private final PackageMapper packageMapper;
 
-    @Transactional(readOnly = true)
-    public Page<PackageResponseDto> getPackageByFilter(PackageSearchFilter filter) {
+    public Page<PackageResponseDto> searchPackages(PackageSearchFilter filter) {
         Pageable pageable = getPageable(filter);
-        log.debug("Entering getPackageByFilter with params: arch={}, name={}, pageSize={}, pageNumber={}",
-                filter.packageName(),
+        log.debug(
+                "Entering getPackageByFilter with params: arch={}, name={}, pageSize={}, pageNumber={}",
                 filter.arch(),
+                filter.packageName(),
                 filter.pageSize(),
                 filter.pageNumber());
-        return repository.getByPackageNameContainingIgnoreCaseAndArch(
+
+        return repository.getPackagesByFilter(
                 filter.packageName(),
                 filter.arch(),
-                pageable);
+                pageable).map(packageMapper::toPackageResponseDto);
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 0 6 * * *")
+    public void addAllPackagesFromRepodataToDb() throws IOException,
+            PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
+
+        String repodataFilePathOfX86_64 = getRepodataFilePath(Arch.X86_64);
+
+        NSDictionary repodata_x86_64 = Parser.toMap(new File(repodataFilePathOfX86_64))
+                .orElseThrow(() -> new FileNotFoundException());
+        List<PackageEntity> packages = parsePackages(repodata_x86_64);
+        for (Arch arch : Arch.values()) {
+            if (arch == Arch.X86_64) {
+                continue;
+
+            }
+
+            String repodataFilePath = getRepodataFilePath(arch);
+
+            NSDictionary repodata = Parser.toMap(new File(repodataFilePath))
+                    .orElseThrow(() -> new FileNotFoundException());
+
+            for (PackageEntity packageEntity : packages) {
+                if (repodata.containsKey(packageEntity.getPackageName())) {
+                    packageEntity.getArch().add(arch);
+                }
+            }
+        }
+        repository.saveAll(packages);
+    }
+
+    private List<PackageEntity> parsePackages(NSDictionary repodata) {
+
+        List<PackageEntity> list = repodata.keySet().stream()
+                .map(packageName -> {
+                    NSDictionary metadata = (NSDictionary) repodata.get(packageName);
+
+                    PackageEntity packageEntity = new PackageEntity();
+
+                    packageEntity.setPackageName(packageName);
+
+                    String pkgver = metadata.get("pkgver").toString();
+
+                    int dash = pkgver.lastIndexOf('-');
+                    int underscore = pkgver.lastIndexOf('_');
+
+                    packageEntity.setVersion(pkgver.substring(dash + 1, underscore));
+                    packageEntity.setRevision(Integer.parseInt(pkgver.substring(underscore + 1)));
+
+                    packageEntity.setSizeInBytes(
+                            Long.parseLong(metadata.get("pkgsize").toString()));
+
+                    packageEntity.setShortDescription(
+                            metadata.get("short_desc").toString());
+
+                    Set<Arch> archs = new HashSet<>();
+                    archs.add(
+                            Arch.fromCode(metadata.get("architecture").toString()));
+
+                    packageEntity.setArch(archs);
+                    return packageEntity;
+                })
+                .toList();
+        return list;
     }
 
     private static Pageable getPageable(PackageSearchFilter filter) {
+        int defaultPageSize = 20;
+        int defaultPageNumber = 0;
         int pageSize = filter.pageSize() != null
                 ? filter.pageSize()
-                : 15;
+                : defaultPageSize;
         int pageNumber = filter.pageNumber() != null
                 ? filter.pageNumber()
-                : 0;
+                : defaultPageNumber;
 
+        if (pageSize < 1 || pageSize > 100) {
+            pageSize = defaultPageSize;
+        }
+
+        if (pageNumber < 0) {
+            pageNumber = defaultPageNumber;
+        }
         return Pageable
                 .ofSize(pageSize)
                 .withPage(pageNumber);
+    }
+
+    private String getRepodataFilePath(Arch arch) {
+        return properties.getPath() + "/" +
+                properties.getFiles().get(arch.getValue());
     }
 }

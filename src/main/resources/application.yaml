@@ -1,12 +1,23 @@
 spring:
   application:
     name: backend
+
   datasource:
     url: jdbc:postgresql://localhost:5432/blackhole-back-someUUID
     username: ONEDAY
     password: random
+
   jpa:
     database: postgresql
     show-sql: true
     hibernate:
       ddl-auto: validate
+
+blackhole:
+  repodata:
+    path: /path/to/repodata
+    files:
+      x86_64: repodata-x86_64
+      aarch64: repodata-aarch64
+      x86_64-musl: repodata-x86_64-musl
+      aarch64-musl: repodata-aarch64-musl
