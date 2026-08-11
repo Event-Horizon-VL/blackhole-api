@@ -1,10 +1,15 @@
 package dev.black_hole.backend.dto;
 
+import java.util.Set;
+
+import dev.black_hole.backend.model.Arch;
+
 public record PackageResponseDto(
         String packageName,
         Double version,
         int revision,
         long sizeInBytes,
-        String shortDescription) {
+        String shortDescription,
+        Set<Arch> arch) {
 
 }

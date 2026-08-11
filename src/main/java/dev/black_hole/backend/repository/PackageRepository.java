@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import dev.black_hole.backend.dto.PackageResponseDto;
 import dev.black_hole.backend.model.PackageEntity;
 
 public interface PackageRepository extends JpaRepository<PackageEntity, String> {
@@ -15,7 +14,7 @@ public interface PackageRepository extends JpaRepository<PackageEntity, String> 
                 WHERE (:packageName IS NULL OR LOWER(p.packageName) LIKE LOWER(CONCAT('%', :packageName, '%')))
                 AND (:arch IS NULL OR :arch MEMBER OF p.arch)
             """)
-    Page<PackageResponseDto> getPackagesByFilter(
+    Page<PackageEntity> getPackagesByFilter(
             String packageName,
             String arch,
             Pageable pageable);
