@@ -25,6 +25,9 @@ public class Parser {
                 FileInputStream fileInputStream = new FileInputStream(file);
                 InputStream zstd = new ZstdInputStream(fileInputStream);
                 TarArchiveInputStream tar = new TarArchiveInputStream(zstd)) {
+            if (tar.getNextTarEntry() == null) {
+                return Optional.empty();
+            }
             NSDictionary rootDict = (NSDictionary) PropertyListParser.parse(tar);
             return Optional.of(rootDict);
         }

@@ -11,10 +11,13 @@ import java.util.Set;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.xml.sax.SAXException;
 
@@ -29,18 +32,28 @@ import dev.black_hole.backend.model.Arch;
 import dev.black_hole.backend.model.PackageEntity;
 import dev.black_hole.backend.parser.Parser;
 import dev.black_hole.backend.repository.PackageRepository;
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class PackageService {
     public static final org.slf4j.Logger log = LoggerFactory.getLogger(PackageService.class);
 
     private final PackageRepository repository;
     private final RepodataProperties properties;
     private final PackageMapper packageMapper;
+    private final TransactionTemplate transactionTemplate;
 
+    public PackageService(
+            PackageRepository repository,
+            RepodataProperties properties,
+            PackageMapper packageMapper,
+            PlatformTransactionManager transactionManager) {
+        this.repository = repository;
+        this.properties = properties;
+        this.packageMapper = packageMapper;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
+
+    @Transactional(readOnly = true)
     public Page<PackageResponseDto> searchPackages(PackageSearchFilter filter) {
         Pageable pageable = getPageable(filter);
         log.debug(
@@ -56,7 +69,6 @@ public class PackageService {
                 pageable).map(packageMapper::toPackageResponseDto);
     }
 
-    @Transactional
     @Scheduled(cron = "0 0 6 * * *")
     public void addAllPackagesFromRepodataToDb() throws IOException,
             PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
@@ -67,11 +79,6 @@ public class PackageService {
                 .orElseThrow(() -> new FileNotFoundException());
         List<PackageEntity> packages = parsePackages(repodata_x86_64);
         for (Arch arch : Arch.values()) {
-            if (arch == Arch.X86_64) {
-                continue;
-
-            }
-
             String repodataFilePath = getRepodataFilePath(arch);
 
             NSDictionary repodata = Parser.toMap(new File(repodataFilePath))
@@ -83,7 +90,17 @@ public class PackageService {
                 }
             }
         }
-        repository.saveAll(packages);
+        savePackagesIndividually(packages);
+    }
+
+    private void savePackagesIndividually(List<PackageEntity> packages) {
+        for (PackageEntity packageEntity : packages) {
+            try {
+                transactionTemplate.executeWithoutResult(status -> repository.save(packageEntity));
+            } catch (DataIntegrityViolationException e) {
+                log.warn("Skipping package '{}': {}", packageEntity.getPackageName(), e.getMessage());
+            }
+        }
     }
 
     private List<PackageEntity> parsePackages(NSDictionary repodata) {
@@ -105,7 +122,7 @@ public class PackageService {
                     packageEntity.setRevision(Integer.parseInt(pkgver.substring(underscore + 1)));
 
                     packageEntity.setSizeInBytes(
-                            Long.parseLong(metadata.get("pkgsize").toString()));
+                            Long.parseLong(metadata.get("filename-size").toString()));
 
                     packageEntity.setShortDescription(
                             metadata.get("short_desc").toString());
