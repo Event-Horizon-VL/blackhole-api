@@ -1,7 +1,9 @@
 package dev.black_hole.backend.dto;
 
+import dev.black_hole.backend.model.Arch;
+
 public record PackageSearchFilter(
-        String arch,
+        Arch arch,
         String packageName,
         Integer pageSize,
         Integer pageNumber) {

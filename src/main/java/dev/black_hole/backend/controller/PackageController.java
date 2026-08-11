@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.black_hole.backend.dto.PackageResponseDto;
 import dev.black_hole.backend.dto.PackageSearchFilter;
+import dev.black_hole.backend.model.Arch;
 import dev.black_hole.backend.service.PackageService;
 import lombok.RequiredArgsConstructor;
 
@@ -23,7 +24,7 @@ public class PackageController {
 
     @GetMapping("/")
     public ResponseEntity<Page<PackageResponseDto>> getPackageByFilter(
-            @RequestParam(required = false) String arch,
+            @RequestParam(required = false) Arch arch,
             @RequestParam(name = "name", required = false) String packageName,
             @RequestParam(required = false) Integer pageSize,
             @RequestParam(required = false) Integer pageNumber) {

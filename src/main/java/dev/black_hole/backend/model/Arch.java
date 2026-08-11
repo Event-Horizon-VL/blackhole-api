@@ -15,7 +15,7 @@ public enum Arch {
 
     public static Arch fromCode(String value) {
         for (Arch arch : values()) {
-            if (arch.value == value) {
+            if (arch.value.equals(value)) {
                 return arch;
             }
         }
