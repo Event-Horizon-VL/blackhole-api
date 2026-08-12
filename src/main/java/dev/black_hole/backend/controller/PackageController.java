@@ -24,11 +24,12 @@ public class PackageController {
 
     @GetMapping("/")
     public ResponseEntity<Page<PackageResponseDto>> getPackageByFilter(
-            @RequestParam(required = false) Arch arch,
+            @RequestParam(required = false) String arch,
             @RequestParam(name = "name", required = false) String packageName,
             @RequestParam(required = false) Integer pageSize,
             @RequestParam(required = false) Integer pageNumber) {
-        var filter = new PackageSearchFilter(arch, packageName, pageSize, pageNumber);
+        Arch parsedArch = arch != null ? Arch.fromCode(arch) : null;
+        var filter = new PackageSearchFilter(parsedArch, packageName, pageSize, pageNumber);
         log.info("Getting package with filter={}", filter);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(packageService.searchPackages(filter));
