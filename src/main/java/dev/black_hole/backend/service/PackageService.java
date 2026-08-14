@@ -50,40 +50,72 @@ public class PackageService {
                 filter.pageSize(),
                 filter.pageNumber());
 
+        Arch arch = Arch.fromCode(filter.arch());
+        if (filter.arch() != null && arch == null) {
+            log.warn("Unknown architecture received: {}", filter.arch());
+        }
+
         return repository.getPackagesByFilter(
                 filter.packageName(),
-                filter.arch(),
+                arch,
                 pageable).map(packageMapper::toPackageResponseDto);
     }
 
     @Transactional
-    @Scheduled(cron = "0 0 6 * * *")
-    public void addAllPackagesFromRepodataToDb() throws IOException,
-            PropertyListFormatException, ParseException, ParserConfigurationException, SAXException {
+    @Scheduled(cron = "0 0 23 * * *")
+    public void addAllPackagesFromRepodataToDb() {
 
         String repodataFilePathOfX86_64 = getRepodataFilePath(Arch.X86_64);
 
-        NSDictionary repodata_x86_64 = Parser.toMap(new File(repodataFilePathOfX86_64))
-                .orElseThrow(() -> new FileNotFoundException());
-        List<PackageEntity> packages = parsePackages(repodata_x86_64);
-        for (Arch arch : Arch.values()) {
-            if (arch == Arch.X86_64) {
-                continue;
-
-            }
-
-            String repodataFilePath = getRepodataFilePath(arch);
-
-            NSDictionary repodata = Parser.toMap(new File(repodataFilePath))
+        NSDictionary repodata_x86_64 = null;
+        try {
+            repodata_x86_64 = Parser.toMap(new File(repodataFilePathOfX86_64))
                     .orElseThrow(() -> new FileNotFoundException());
 
-            for (PackageEntity packageEntity : packages) {
-                if (repodata.containsKey(packageEntity.getPackageName())) {
-                    packageEntity.getArch().add(arch);
+            List<PackageEntity> packages = parsePackages(repodata_x86_64);
+
+            for (Arch arch : Arch.values()) {
+                if (arch == Arch.X86_64) {
+                    continue;
+
                 }
+
+                String repodataFilePath = getRepodataFilePath(arch);
+
+                NSDictionary repodata = Parser.toMap(new File(repodataFilePath))
+                        .orElseThrow(() -> new FileNotFoundException());
+
+                for (PackageEntity packageEntity : packages) {
+                    if (repodata.containsKey(packageEntity.getPackageName())) {
+                        packageEntity.getArch().add(arch);
+                    }
+                }
+
+                repository.saveAll(packages);
             }
+        } catch (FileNotFoundException e) {
+            log.error(
+                    "File not found: {}: {}",
+                    e.getClass().getSimpleName(),
+                    e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.error(
+                    "Invalid package data: {}: {}",
+                    e.getClass().getSimpleName(),
+                    e.getMessage());
+        } catch (IOException | PropertyListFormatException | ParseException
+                | ParserConfigurationException | SAXException e) {
+            log.error(
+                    "Failed to parse repodata: {}: {}",
+                    e.getClass().getSimpleName(),
+                    e.getMessage());
+        } catch (Exception e) {
+            log.error(
+                    "Unexpected exception: {}: {}",
+                    e.getClass().getSimpleName(),
+                    e.getMessage());
         }
-        repository.saveAll(packages);
+
     }
 
     private List<PackageEntity> parsePackages(NSDictionary repodata) {
