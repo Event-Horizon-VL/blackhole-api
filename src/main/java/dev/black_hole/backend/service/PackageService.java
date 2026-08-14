@@ -137,7 +137,7 @@ public class PackageService {
                     packageEntity.setRevision(Integer.parseInt(pkgver.substring(underscore + 1)));
 
                     packageEntity.setSizeInBytes(
-                            Long.parseLong(metadata.get("pkgsize").toString()));
+                            Long.parseLong(metadata.get("filename-size").toString()));
 
                     packageEntity.setShortDescription(
                             metadata.get("short_desc").toString());
@@ -154,8 +154,9 @@ public class PackageService {
     }
 
     private static Pageable getPageable(PackageSearchFilter filter) {
-        int defaultPageSize = 20;
-        int defaultPageNumber = 0;
+        final int defaultPageSize = 20;
+        final int defaultPageNumber = 0;
+
         int pageSize = filter.pageSize() != null
                 ? filter.pageSize()
                 : defaultPageSize;
