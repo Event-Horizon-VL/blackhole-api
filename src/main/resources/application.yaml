@@ -17,7 +17,7 @@ blackhole:
   repodata:
     path: /path/to/repodata
     files:
-      x86_64: repodata-x86_64
-      aarch64: repodata-aarch64
-      x86_64-musl: repodata-x86_64-musl
-      aarch64-musl: repodata-aarch64-musl
+      x86_64: x86_64-repodata
+      aarch64: aarch64-repodata
+      x86_64-musl: x86_64-musl-repodata
+      aarch64-musl: aarch64-musl-repodata
