@@ -25,7 +25,7 @@ import lombok.Setter;
 public class PackageEntity {
 
     @Id
-    @Column(nullable = false, length = 40)
+    @Column(nullable = false, length = 50)
     private String packageName;
 
     @Column(nullable = false)
@@ -39,7 +39,7 @@ public class PackageEntity {
     @Column(nullable = false, name = "size_in_bytes")
     private long sizeInBytes;
 
-    @Column(nullable = false, length = 84)
+    @Column(nullable = false, length = 120)
     private String shortDescription;
 
     @ElementCollection

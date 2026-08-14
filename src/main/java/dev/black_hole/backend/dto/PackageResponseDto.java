@@ -6,7 +6,7 @@ import dev.black_hole.backend.model.Arch;
 
 public record PackageResponseDto(
         String packageName,
-        Double version,
+        String version,
         int revision,
         long sizeInBytes,
         String shortDescription,

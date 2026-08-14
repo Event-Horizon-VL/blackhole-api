@@ -23,7 +23,7 @@ public class PackageController {
 
     @GetMapping("/")
     public ResponseEntity<Page<PackageResponseDto>> getPackageByFilter(
-            @RequestParam(required = false) String arch,
+            @RequestParam(required = false, defaultValue = "x86_64") String arch,
             @RequestParam(name = "name", required = false) String packageName,
             @RequestParam(required = false) Integer pageSize,
             @RequestParam(required = false) Integer pageNumber) {
