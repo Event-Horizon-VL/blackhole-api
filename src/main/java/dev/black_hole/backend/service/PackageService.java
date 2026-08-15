@@ -10,7 +10,6 @@ import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,12 +29,13 @@ import dev.black_hole.backend.model.PackageEntity;
 import dev.black_hole.backend.parser.Parser;
 import dev.black_hole.backend.repository.PackageRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PackageService {
-    public static final org.slf4j.Logger log = LoggerFactory.getLogger(PackageService.class);
 
     private final PackageRepository repository;
     private final RepodataProperties properties;
@@ -95,23 +95,23 @@ public class PackageService {
             }
         } catch (FileNotFoundException e) {
             log.error(
-                    "File not found: {}: {}",
+                    "File not found: {}: {} in addAllPackagesFromRepodataToDb",
                     e.getClass().getSimpleName(),
                     e.getMessage());
         } catch (IllegalArgumentException e) {
             log.error(
-                    "Invalid package data: {}: {}",
+                    "Invalid package data: {}: {} in addAllPackagesFromRepodataToDb",
                     e.getClass().getSimpleName(),
                     e.getMessage());
         } catch (IOException | PropertyListFormatException | ParseException
                 | ParserConfigurationException | SAXException e) {
             log.error(
-                    "Failed to parse repodata: {}: {}",
+                    "Failed to parse repodata: {}: {} in addAllPackagesFromRepodataToDb",
                     e.getClass().getSimpleName(),
                     e.getMessage());
         } catch (Exception e) {
             log.error(
-                    "Unexpected exception: {}: {}",
+                    "Unexpected exception: {}: {} in addAllPackagesFromRepodataToDb",
                     e.getClass().getSimpleName(),
                     e.getMessage());
         }
