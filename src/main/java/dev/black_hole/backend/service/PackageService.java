@@ -42,13 +42,13 @@ public class PackageService {
     private final PackageMapper packageMapper;
 
     public Page<PackageResponseDto> searchPackages(PackageSearchFilter filter) {
-        Pageable pageable = getPageable(filter);
+        Pageable pageable = filter.pageable();
         log.debug(
                 "Entering getPackageByFilter with params: arch={}, name={}, pageSize={}, pageNumber={}",
                 filter.arch(),
                 filter.packageName(),
-                filter.pageSize(),
-                filter.pageNumber());
+                pageable.getPageSize(),
+                pageable.getPageNumber());
 
         Arch arch = Arch.fromCode(filter.arch());
         if (filter.arch() != null && arch == null) {
@@ -153,28 +153,6 @@ public class PackageService {
         return list;
     }
 
-    private static Pageable getPageable(PackageSearchFilter filter) {
-        final int defaultPageSize = 20;
-        final int defaultPageNumber = 0;
-
-        int pageSize = filter.pageSize() != null
-                ? filter.pageSize()
-                : defaultPageSize;
-        int pageNumber = filter.pageNumber() != null
-                ? filter.pageNumber()
-                : defaultPageNumber;
-
-        if (pageSize < 1 || pageSize > 100) {
-            pageSize = defaultPageSize;
-        }
-
-        if (pageNumber < 0) {
-            pageNumber = defaultPageNumber;
-        }
-        return Pageable
-                .ofSize(pageSize)
-                .withPage(pageNumber);
-    }
 
     private String getRepodataFilePath(Arch arch) {
         return properties.getPath() + "/" +

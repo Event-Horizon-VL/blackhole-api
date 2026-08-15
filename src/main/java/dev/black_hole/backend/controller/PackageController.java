@@ -1,6 +1,8 @@
 package dev.black_hole.backend.controller;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +28,8 @@ public class PackageController {
     public ResponseEntity<Page<PackageResponseDto>> getPackageByFilter(
             @RequestParam(required = false, defaultValue = "x86_64") String arch,
             @RequestParam(name = "name", required = false) String packageName,
-            @RequestParam(required = false) Integer pageSize,
-            @RequestParam(required = false) Integer pageNumber) {
-        var filter = new PackageSearchFilter(arch, packageName, pageSize, pageNumber);
+            @PageableDefault(size = 20) Pageable pageable) {
+        var filter = new PackageSearchFilter(arch, packageName, pageable);
         log.info("Getting package with filter={}", filter);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(packageService.searchPackages(filter));
