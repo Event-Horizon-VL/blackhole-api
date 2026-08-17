@@ -3,7 +3,7 @@ CREATE TABLE package (
     version TEXT NOT NULL,
     revision INTEGER NOT NULL,
     size_in_bytes BIGINT NOT NULL,
-    short_description VARCHAR(84) NOT NULL
+    short_description VARCHAR(120) NOT NULL
 );
 CREATE TABLE package_archs (
     package_name VARCHAR(40) NOT NULL,

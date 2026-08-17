@@ -62,7 +62,7 @@ public class PackageService {
     }
 
     @Transactional
-    @Scheduled(cron = "0 0 23 * * *")
+    @Scheduled(fixedRate = 24 * 60 * 60 * 1000)
     public void addAllPackagesFromRepodataToDb() {
 
         String repodataFilePathOfX86_64 = getRepodataFilePath(Arch.X86_64);
